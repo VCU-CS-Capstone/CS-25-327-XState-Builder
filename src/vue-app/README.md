@@ -23,6 +23,8 @@ npm run lint
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
 
+## Docker setup
+
 ### Build docker image
 ```
 docker build -t my-vue-app .
