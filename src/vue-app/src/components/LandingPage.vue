@@ -42,7 +42,6 @@ export default {
       this.selectedOption = option;
     },
     handleSubmit() {
-      // Redirect to the workflow page
       if (this.selectedOption === 'new' && this.selectedDefinition) {
         this.$router.push({ name: 'workflow', params: { definition: this.selectedDefinition } });
       } else if (this.selectedOption === 'review' && this.selectedInstance) {
