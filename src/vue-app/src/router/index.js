@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import LandingPage from '@/components/LandingPage.vue';
 import WorkflowPage from '@/components/WorkflowPage.vue';
+import IntakeForm from '@/components/IntakeForm.vue';
 
 const routes = [
   {
@@ -12,6 +13,11 @@ const routes = [
     path: '/workflow',
     name: 'workflow',
     component: WorkflowPage
+  },
+  {
+    path: '/intake-form',
+    name: 'IntakeForm',
+    component: IntakeForm
   }
 ];
 
