@@ -13,8 +13,8 @@
       <div class="my-4">
         <h2>Related Tasks</h2>
         <ul class="list-group">
-          <li class="list-group-item" v-for="task in tasks" :key="task.id" @click="selectTask(task)">
-            {{ task.name }}
+          <li class="list-group-item" v-for="task in tasks" :key="task.TaskID" @click="selectTask(task)">
+            {{ task.Name }}
           </li>
         </ul>
       </div>
@@ -32,20 +32,26 @@
   </div>
 </template>
 
-
 <script>
 export default {
   data() {
     return {
       instanceInfo: 'Instance information goes here...',
-      tasks: [
-        { id: 1, name: 'Task 1', details: 'Details for Task 1' },
-        { id: 2, name: 'Task 2', details: 'Details for Task 2' }
-      ],
-      selectedTask: null
+      tasks: [], // Initialized empty list for tasks
+      selectedTask: null // Initialize selected task
     };
   },
   methods: {
+    async fetchTasks() {
+      try {
+        const response = await fetch('http://localhost:4000/tasks');
+        const data = await response.json();
+        console.log('Data: ', data); // Add this line to log data
+        this.tasks = data;
+      } catch (error) {
+        console.error('Error fetching tasks', error);
+      }
+    },
     selectTask(task) {
       this.selectedTask = task;
     },
@@ -61,6 +67,14 @@ export default {
       // Logic for closing the instance
       alert('Instance Closed');
     }
+  },
+  mounted() {
+    console.log('Component mounted.');
+    this.tasks = [
+      { TaskID: 1, Name: 'Hardcoded Task 1' },
+      { TaskID: 2, Name: 'Hardcoded Task 2' }
+    ];  // Hardcoded array to verify rendering
+    this.fetchTasks();  // continue fetching real data
   }
 };
 </script>
