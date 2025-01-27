@@ -56,16 +56,16 @@ export default {
       this.selectedTask = task;
     },
     closeTask() {
-      // Logic for closing the task
-      alert('Task Closed');
+      this.selectedTask = null;
+      //alert('Task Closed');
     },
     createNewTask() {
       // Logic for creating a new task
       alert('New Task Created');
     },
     closeInstance() {
-      // Logic for closing the instance
-      alert('Instance Closed');
+      this.$router.push({ name: 'landing' });
+      //alert('Instance Closed');
     }
   },
   mounted() {
