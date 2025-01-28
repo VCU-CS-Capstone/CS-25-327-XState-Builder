@@ -17,8 +17,14 @@ const pool = new Pool({
 });
 
 app.get('/tasks', async (req, res) => {
+  const { instanceid } = req.query; // Extract instanceid from query parameters
   try {
-    const result = await pool.query('SELECT * FROM tasks WHERE InstanceID = 1');
+    const query = instanceid 
+      ? 'SELECT * FROM tasks WHERE instanceid = $1' 
+      : 'SELECT * FROM tasks';
+    const params = instanceid ? [instanceid] : [];
+    
+    const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching tasks', error);

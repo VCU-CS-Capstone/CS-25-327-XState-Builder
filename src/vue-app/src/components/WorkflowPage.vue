@@ -37,6 +37,7 @@
 
 <script>
 export default {
+  props: ['instanceid'],
   data() {
     return {
       instanceInfo: 'Instance information goes here...',
@@ -46,10 +47,15 @@ export default {
   },
   methods: {
     async fetchTasks() {
+      if(!this.instanceid) {
+        console.warn('No instance ID provided');
+        return;
+      }
+
       try {
-        const response = await fetch('http://localhost:4000/tasks');
+        const response = await fetch(`http://localhost:4000/tasks?instanceid=${this.instanceid}`);
         const data = await response.json();
-        console.log('Data: ', data); // Add this line to log data
+        console.log('Data:', data);
         this.tasks = data;
       } catch (error) {
         console.error('Error fetching tasks', error);

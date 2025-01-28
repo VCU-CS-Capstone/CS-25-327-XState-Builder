@@ -47,8 +47,8 @@ export default {
       selectedOption: '',
       selectedDefinition: '',
       selectedInstance: '',
-      definitions: ['Definition 1', 'Definition 2', 'Definition 3'],
-      instances: ['Instance 1', 'Instance 2', 'Instance 3']
+      definitions: ['1', '2', '3'],
+      instances: ['1', '2', '3']
     };
   },
   methods: {
@@ -57,9 +57,11 @@ export default {
     },
     handleSubmit() {
       if (this.selectedOption === 'new' && this.selectedDefinition) {
-        this.$router.push({ name: 'workflow', params: { definition: this.selectedDefinition } });
+        this.$router.push({ name: 'workflow', params: { instanceid: this.selectedDefinition } });
       } else if (this.selectedOption === 'review' && this.selectedInstance) {
-        this.$router.push({ name: 'workflow', params: { instance: this.selectedInstance } });
+        this.$router.push({ name: 'workflow', params: { instanceid: this.selectedInstance } });
+      } else {
+        alert('Please select an option and an appropriate value.');
       }
     }
   }

@@ -10,13 +10,14 @@ const routes = [
     component: LandingPage
   },
   {
-    path: '/workflow',
+    path: '/workflow/:instanceid',
     name: 'workflow',
-    component: WorkflowPage
+    component: WorkflowPage,
+    props: true // Pass route params as props
   },
   {
     path: '/intake-form',
-    name: 'IntakeForm',
+    name: 'intakeForm',
     component: IntakeForm
   }
 ];
