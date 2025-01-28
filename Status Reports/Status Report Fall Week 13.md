@@ -18,7 +18,7 @@
 
 ## 2) Milestones to be completed next week ##
    - Finish and submit PDR.
-   - Keep working UI, Database, and Slack integration.
+   - Keep working on UI, Database, and Slack integration.
 
 ## 3) Issues, problems or concerns ##
    - N/A
