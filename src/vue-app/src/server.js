@@ -18,7 +18,7 @@ const pool = new Pool({
 
 app.get('/tasks', async (req, res) => {
   try {
-    const result = await pool.query('SELECT TaskID, InstanceID, Name FROM tasks WHERE TaskID = 1');
+    const result = await pool.query('SELECT * FROM tasks WHERE InstanceID = 1');
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching tasks', error);

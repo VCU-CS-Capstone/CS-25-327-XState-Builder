@@ -13,21 +13,24 @@
       <div class="my-4">
         <h2>Related Tasks</h2>
         <ul class="list-group">
-          <li class="list-group-item" v-for="task in tasks" :key="task.TaskID" @click="selectTask(task)">
-            {{ task.Name }}
+          <li class="list-group-item" v-for="task in tasks" :key="task.taskid" @click="selectTask(task)">
+            {{ task.name }}
           </li>
         </ul>
       </div>
 
       <div v-if="selectedTask" class="my-4">
         <h2>Task Details</h2>
-        <p>{{ selectedTask.details }}</p>
+        <p>Instance ID: {{ selectedTask.instanceid }}</p>
+        <p>Task ID: {{ selectedTask.taskid }}</p>
+        <p>Notes: {{ selectedTask.notes }}</p>
         <div class="d-flex justify-content-between mt-3">
           <button class="btn btn-danger" @click="closeTask">Close Task</button>
           <button class="btn btn-primary" @click="createNewTask">Create New Task</button>
           <button class="btn btn-warning" @click="closeInstance">Close Instance</button>
         </div>
       </div>
+
     </div>
   </div>
 </template>
@@ -70,10 +73,6 @@ export default {
   },
   mounted() {
     console.log('Component mounted.');
-    this.tasks = [
-      { TaskID: 1, Name: 'Hardcoded Task 1' },
-      { TaskID: 2, Name: 'Hardcoded Task 2' }
-    ];  // Hardcoded array to verify rendering
     this.fetchTasks();  // continue fetching real data
   }
 };
