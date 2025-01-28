@@ -23,19 +23,19 @@ Status Report Fall Week XX.md is a template for to copy-paste into new Status re
 | Week 10 Status Report: Nov 11 - 15 | Finish Fall Poster, Work on user interface for web app | Finished Fall Poster (faculty advisor/mentor both loved it), implemented rough UI design for web app | N/A |
 | Week 11 Status Report: Nov 18 - 22 | Work on GitHub status reports and meet as a team to gain a useful review/retrospective on our project thus far | Submitted Weekly GitHub Reports Assignment | N/A |
 | Week 12 Status Report: Nov 25 - 29 | Bryan - Web App UI, Sohum/Neil - Database, Peter - Slack Intake form | Thanksgiving Break | N/A |
-| Week 13 Status Report | | | |
-| Week 14 Status Report | | | |
-| Week 15 Status Report | | | |
-| Week 16 Status Report | | | |
+| Week 13 Status Report: Dec 2 - 6 | Work on Preliminary Design Report(PDR) and prepare for Dec 2nd Fall Poster Session | Finished good chunk of PDR and presented at fall poster session | N/A |
+| Week 14 Status Report: Dec 9 - 13 | Finish and submit PDR | Finished and submitted PDR; got Irfan and Leigha's approval | N/A |
+| Week 15 Status Report: Dec 16 - 20 | Tie up loose ends for the project for fall semester | All deliverable completed for Fall Semester; Enjoy Break! | N/A |
+| Week 16 Status Report: Dec 23 - 27 | Winter Break | Winter Break | N/A |
 
 ## Spring Semester
 
 | Document | Tasks | Accomplishments| Issues |
 |---|---|---|---|
-| Week 1 Status Report | | | |
-| Week 2 Status Report | | | |
-| Week 3 Status Report | | | |
-| Week 4 Status Report | | | |
+| Week 1 Status Report: Jan 13 - 17 | Setup new meeting time with C1 mentor, talk about C1 presentation expectations for Jan 28th | Wednesdays at 4:30 is the new meeting time, started working on fixing up UI of webapp and connecting it to the Database | N/A |
+| Week 2 Status Report: Jan 20 - 24 | Connect Database to Webapp, test with mock data, Peter - start working on slack intake form implementation, prepare C1 presentation for Jan 28th | Finished everything except for slack intake form | N/A |
+| Week 3 Status Report: Jan 27 - 31 | Present project to C1 mentors on Jan 28th |  | N/A |
+| Week 4 Status Report: Feb 3 - 7 |  |  | N/A |
 | Week 5 Status Report | | | |
 | Week 6 Status Report | | | |
 | Week 7 Status Report | | | |
