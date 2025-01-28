@@ -32,9 +32,9 @@ Status Report Fall Week XX.md is a template for to copy-paste into new Status re
 
 | Document | Tasks | Accomplishments| Issues |
 |---|---|---|---|
-| Week 1 Status Report: Jan 13 - 17 |  |  | N/A |
-| Week 2 Status Report: Jan 20 - 24 |  |  | N/A |
-| Week 3 Status Report: Jan 27 - 31 |  |  | N/A |
+| Week 1 Status Report: Jan 13 - 17 | Setup new meeting time with C1 mentor, talk about C1 presentation expectations for Jan 28th | Wednesdays at 4:30 is the new meeting time, started working on fixing up UI of webapp and connecting it to the Database | N/A |
+| Week 2 Status Report: Jan 20 - 24 | Connect Database to Webapp, test with mock data, Peter - start working on slack intake form implementation, prepare C1 presentation for Jan 28th | Finished everything except for slack intake form | N/A |
+| Week 3 Status Report: Jan 27 - 31 | Present project to C1 mentors on Jan 28th |  | N/A |
 | Week 4 Status Report: Feb 3 - 7 |  |  | N/A |
 | Week 5 Status Report | | | |
 | Week 6 Status Report | | | |
