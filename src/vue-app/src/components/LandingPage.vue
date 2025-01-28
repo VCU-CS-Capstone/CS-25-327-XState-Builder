@@ -25,8 +25,8 @@
         <label for="instanceSelect">Select an Instance ID:</label>
         <select id="instanceSelect" v-model="selectedInstance" class="form-control">
           <option disabled value="">Please select an instance ID</option>
-          <option v-for="instance in instances" :key="instance" :value="instance">
-            {{ instance }}
+          <option v-for="instance in instances" :key="instance.instanceid" :value="instance.instanceid">
+            {{ instance.name }}
           </option>
         </select>
       </div>
@@ -38,8 +38,6 @@
   </div>
 </template>
 
-
-
 <script>
 export default {
   data() {
@@ -47,13 +45,22 @@ export default {
       selectedOption: '',
       selectedDefinition: '',
       selectedInstance: '',
-      definitions: ['1', '2', '3'],
-      instances: ['1', '2', '3']
+      definitions: ['Definition 1', 'Definition 2', 'Definition 3'],
+      instances: [] // List of instances fetched from the database
     };
   },
   methods: {
     selectOption(option) {
       this.selectedOption = option;
+    },
+    async fetchInstances() {
+      try {
+        const response = await fetch('http://localhost:4000/instances');
+        const data = await response.json();
+        this.instances = data;
+      } catch (error) {
+        console.error('Error fetching instances', error);
+      }
     },
     handleSubmit() {
       if (this.selectedOption === 'new' && this.selectedDefinition) {
@@ -64,32 +71,33 @@ export default {
         alert('Please select an option and an appropriate value.');
       }
     }
+  },
+  mounted() {
+    this.fetchInstances(); // Fetch instances when the component is mounted
   }
 };
 </script>
 
 <style>
 .banner {
-  background-color: white; /* White background color */
-  position: fixed; /* Fix the position at the top */
+  background-color: white; 
+  position: fixed; 
   top: 0;
   width: 100%;
-  z-index: 1000; /* Ensure it stays on top of other elements */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: Add a subtle shadow for better visual separation */
+  z-index: 1000; 
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
 }
 
 .container {
-  margin-top: 100px; /* Adjust to account for the fixed banner height */
-  padding-top: 50px; /* Additional padding to ensure no content is cut off */
+  margin-top: 100px;
+  padding-top: 50px; 
 }
 
 .navy-blue {
-  color: #004080; /* Capital One's navy blue */
+  color: #004080; 
 }
 
 .logo {
   height: 40px;
 }
 </style>
-
-

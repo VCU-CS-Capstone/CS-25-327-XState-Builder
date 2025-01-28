@@ -32,6 +32,16 @@ app.get('/tasks', async (req, res) => {
   }
 });
 
+app.get('/instances', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT instanceid, name FROM instances');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching instances', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
