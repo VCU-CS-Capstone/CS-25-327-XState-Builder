@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
@@ -21,8 +22,8 @@ const pool = new Pool({
   port: 5432
 });
 
-// Slack API Configuration
-const slackToken = "xoxb-7750000112467-8407139090482-YWJViyUg0cM9HzjO4yJU7gU0"; 
+// Load Slack Token from .env
+const slackToken = process.env.SLACK_BOT_TOKEN;
 const web = new WebClient(slackToken);
 
 // Slack Slash Command: Open Intake Form
