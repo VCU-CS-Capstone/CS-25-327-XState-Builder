@@ -34,14 +34,14 @@ Status Report Fall Week XX.md is a template for to copy-paste into new Status re
 |---|---|---|---|
 | Week 1 Status Report: Jan 13 - 17 | Setup new meeting time with C1 mentor, talk about C1 presentation expectations for Jan 28th | Wednesdays at 4:30 is the new meeting time, started working on fixing up UI of webapp and connecting it to the Database | N/A |
 | Week 2 Status Report: Jan 20 - 24 | Connect Database to Webapp, test with mock data, Peter - start working on slack intake form implementation, prepare C1 presentation for Jan 28th | Finished everything except for slack intake form | N/A |
-| Week 3 Status Report: Jan 27 - 31 | Present project to C1 mentors on Jan 28th |  | N/A |
-| Week 4 Status Report: Feb 3 - 7 |  |  | N/A |
-| Week 5 Status Report: Feb 10 - 14 |  |   | N/A |
-| Week 6 Status Report: Feb 17 - 21 |   |   | N/A |
-| Week 7 Status Report: Feb 24 - 28 |   |   | N/A |
-| Week 8 Status Report: Mar 3 - 7 |   |   | N/A |
-| Week 9 Status Report: Mar 10 - 14 |   |   | N/A |
-| Week 10 Status Report: Mar 17 - 21 |   |   | N/A |
+| Week 3 Status Report: Jan 27 - 31 | Present project to C1 mentors on Jan 28th | Successfully presented project to mentors at Capital One | N/A |
+| Week 4 Status Report: Feb 3 - 7 | Work on Slack Intake form/integration & meet with advisor/mentor | Met with advisor/mentor and discussed steps for Slack form/integration | N/A |
+| Week 5 Status Report: Feb 10 - 14 | Work on Slack Intake form/integration | Worked on Slack Intake form/integration | N/A |
+| Week 6 Status Report: Feb 17 - 21 | Work on Slack Intake form/integration | Worked on Slack Intake form/integration | N/A |
+| Week 7 Status Report: Feb 24 - 28 | Work on Slack Intake form/integration & meet with advisor/mentor | Completed Slack Intake form/integration | N/A |
+| Week 8 Status Report: Mar 3 - 7 | Complete Github weekly reports & plan work assignments for spring break | Completed GitHub weekly reports assignment | N/A |
+| Week 9 Status Report: Mar 10 - 14 | Spring Break | Spring Break | N/A |
+| Week 10 Status Report: Mar 17 - 21 | Work on GitHub PR Integration |   | N/A |
 | Week 11 Status Report: Mar 24 - 28 |   |   | N/A |
 | Week 12 Status Report: Mar 31 - Apr 4 |   |   | N/A |
 | Week 13 Status Report: Apr 7 - 11 |   |   | N/A |
