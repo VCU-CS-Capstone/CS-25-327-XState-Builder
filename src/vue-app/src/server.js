@@ -2,11 +2,11 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
-const { WebClient } = require('@slack/web-api');
 const bodyParser = require('body-parser');
+const { Octokit } = require("@octokit/rest");
 
 const app = express();
-const port = 4000;
+const port = process.env.PORT || 4000;
 
 app.use(cors());
 app.use(express.json());
@@ -15,108 +15,197 @@ app.use(bodyParser.json());
 
 // PostgreSQL Database Connection
 const pool = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'postgres',
-  password: 'weezyFbaby0',
-  port: 5432
+  user: process.env.DB_USER || 'postgres',
+  host: process.env.DB_HOST || 'localhost',
+  database: process.env.DB_NAME || 'postgres',
+  password: process.env.DB_PASS || 'weezyFbaby0',
+  port: process.env.DB_PORT || 5432
 });
 
-// Load Slack Token from .env
-const slackToken = process.env.SLACK_BOT_TOKEN;
-const web = new WebClient(slackToken);
+// Initialize Octokit for GitHub API access
+const octokit = new Octokit({
+  auth: process.env.GITHUB_TOKEN
+});
 
-// Slack Slash Command: Open Intake Form
-app.post('/slack/intake-form', async (req, res) => {
-  const { trigger_id } = req.body;
-
+// Route: Intake Form Submission from Vue (POST /api/intake)
+app.post('/api/intake', async (req, res) => {
   try {
-    await web.views.open({
-      trigger_id: trigger_id,
-      view: {
-        type: "modal",
-        callback_id: "intake_form",
-        title: { type: "plain_text", text: "Workflow Intake Form" },
-        blocks: [
-          {
-            type: "input",
-            block_id: "instance_type",
-            label: { type: "plain_text", text: "What is the instance type?" },
-            element: { type: "plain_text_input", action_id: "input" }
-          },
-          {
-            type: "input",
-            block_id: "instance_subtype",
-            label: { type: "plain_text", text: "What is the instance subtype?" },
-            element: { type: "plain_text_input", action_id: "input" }
-          },
-          {
-            type: "input",
-            block_id: "workflow_description",
-            label: { type: "plain_text", text: "Describe the workflow" },
-            element: { type: "plain_text_input", multiline: true, action_id: "input" }
-          },
-          {
-            type: "actions",
-            elements: [
-              {
-                type: "button",
-                text: { type: "plain_text", text: "Submit" },
-                action_id: "submit_button"
-              }
-            ]
-          }
-        ]
+    // Expecting JSON with: instanceType, instanceSubtype, description, and states (an array)
+    const { instanceType, instanceSubtype, description, states } = req.body;
+
+    // Insert the main intake data into workflow_intake
+    const insertIntakeQuery = `
+      INSERT INTO workflow_intake (instance_type, instance_subtype, description)
+      VALUES ($1, $2, $3)
+      RETURNING id
+    `;
+    const intakeResult = await pool.query(insertIntakeQuery, [instanceType, instanceSubtype, description]);
+    const newIntakeId = intakeResult.rows[0].id;
+
+    // Insert associated workflow states (if provided)
+    if (states && Array.isArray(states)) {
+      for (const state of states) {
+        const insertStateQuery = `
+          INSERT INTO workflow_states (intake_id, state_name, description, events, actions, target_state)
+          VALUES ($1, $2, $3, $4, $5, $6)
+        `;
+        await pool.query(insertStateQuery, [
+          newIntakeId,
+          state.name,
+          state.description,
+          JSON.stringify(state.events),   // storing events as JSON
+          JSON.stringify(state.actions),   // storing actions as JSON
+          state.targetState
+        ]);
       }
-    });
+    }
 
-    res.send(""); 
+    res.status(201).json({ message: 'Form data saved successfully', intakeId: newIntakeId });
   } catch (error) {
-    console.error("Error opening Slack modal:", error);
-    res.status(500).send("Failed to open Slack modal.");
+    console.error('Error inserting intake data:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
-// Slack Form Submission: Save Data to Database
-app.post('/slack/form-submit', async (req, res) => {
-  const payload = JSON.parse(req.body.payload);
-  const values = payload.view.state.values;
-
-  const instanceType = values.instance_type.input.value;
-  const instanceSubtype = values.instance_subtype.input.value;
-  const description = values.workflow_description.input.value;
-
+// Route: Generate XState JSON from stored intake data (GET /api/generate-xstate/:intakeId)
+app.get('/api/generate-xstate/:intakeId', async (req, res) => {
   try {
-    // Insert form data into database
-    await pool.query(
-      'INSERT INTO workflow_intake (instance_type, instance_subtype, description) VALUES ($1, $2, $3)',
-      [instanceType, instanceSubtype, description]
-    );
+    const { intakeId } = req.params;
 
-    // Notify Slack channel about new submission
-    await web.chat.postMessage({
-      channel: "#workflow-intakes", // Change to the Slack channel where you want notifications
-      text: `*New Workflow Intake Submitted:*\n *Instance Type:* ${instanceType}\n *Instance Subtype:* ${instanceSubtype}`
+    // Retrieve the intake record
+    const intakeResult = await pool.query('SELECT * FROM workflow_intake WHERE id = $1', [intakeId]);
+    if (intakeResult.rowCount === 0) {
+      return res.status(404).json({ error: 'Intake not found' });
+    }
+
+    // Retrieve the associated workflow states
+    const statesResult = await pool.query('SELECT * FROM workflow_states WHERE intake_id = $1', [intakeId]);
+
+    // Build a basic XState machine definition based on the stored data
+    const machineDefinition = {
+      id: 'workflow',
+      initial: statesResult.rows.length ? statesResult.rows[0].state_name : 'start',
+      states: {}
+    };
+
+    statesResult.rows.forEach((row) => {
+      machineDefinition.states[row.state_name] = {
+        on: {}
+      };
+      // Assume row.events is a JSON array of event names; assign the common target state for this example.
+      const events = JSON.parse(row.events || '[]');
+      events.forEach((evt) => {
+        machineDefinition.states[row.state_name].on[evt] = row.target_state;
+      });
     });
 
-    res.send(""); // Acknowledge Slack event
+    res.json(machineDefinition);
   } catch (error) {
-    console.error("Error saving form data:", error);
-    res.status(500).send("Failed to save form data.");
+    console.error('Error generating XState JSON:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
+// Route: Create GitHub PR with the generated XState JSON (POST /api/create-pr)
+app.post('/api/create-pr', async (req, res) => {
+  try {
+    const { intakeId } = req.body;
+    if (!intakeId) {
+      return res.status(400).json({ error: 'intakeId is required' });
+    }
+
+    // Generate the XState JSON as in the GET route above
+    const intakeResult = await pool.query('SELECT * FROM workflow_intake WHERE id = $1', [intakeId]);
+    if (intakeResult.rowCount === 0) {
+      return res.status(404).json({ error: 'Intake not found' });
+    }
+    const statesResult = await pool.query('SELECT * FROM workflow_states WHERE intake_id = $1', [intakeId]);
+    const machineDefinition = {
+      id: 'workflow',
+      initial: statesResult.rows.length ? statesResult.rows[0].state_name : 'start',
+      states: {}
+    };
+    statesResult.rows.forEach((row) => {
+      machineDefinition.states[row.state_name] = {
+        on: {}
+      };
+      const events = JSON.parse(row.events || '[]');
+      events.forEach((evt) => {
+        machineDefinition.states[row.state_name].on[evt] = row.target_state;
+      });
+    });
+
+    // Convert the JSON to a formatted string and then to base64
+    const xstateJsonString = JSON.stringify(machineDefinition, null, 2);
+    const base64Content = Buffer.from(xstateJsonString).toString('base64');
+
+    // GitHub configuration (from environment variables)
+    const owner = process.env.GITHUB_OWNER;
+    const repo = process.env.GITHUB_REPO;
+    const baseBranch = process.env.GITHUB_BASE_BRANCH || 'main';
+    const newBranchName = `intake-xstate-${intakeId}`;
+
+    // Get the SHA of the base branch
+    const { data: baseBranchData } = await octokit.git.getRef({
+      owner,
+      repo,
+      ref: `heads/${baseBranch}`
+    });
+    const baseSha = baseBranchData.object.sha;
+
+    // Create a new branch from the base branch
+    try {
+      await octokit.git.createRef({
+        owner,
+        repo,
+        ref: `refs/heads/${newBranchName}`,
+        sha: baseSha,
+      });
+    } catch (err) {
+      // If branch creation fails (e.g., branch already exists), log and return an error.
+      console.error('Error creating branch:', err);
+      return res.status(500).json({ error: 'Failed to create branch for PR' });
+    }
+
+    //Create or update the JSON file in the new branch
+    const filePath = `workflows/xstate-${intakeId}.json`;
+    const commitMessage = `Add XState JSON for intake ${intakeId}`;
+    await octokit.repos.createOrUpdateFileContents({
+      owner,
+      repo,
+      path: filePath,
+      message: commitMessage,
+      content: base64Content,
+      branch: newBranchName,
+    });
+
+    // Create a Pull Request from the new branch to the base branch
+    const { data: pr } = await octokit.pulls.create({
+      owner,
+      repo,
+      title: `Add XState JSON for intake ${intakeId}`,
+      head: newBranchName,
+      base: baseBranch,
+      body: `This PR adds the generated XState JSON for intake ${intakeId}.`,
+    });
+
+    res.status(201).json({ message: 'PR created successfully', prUrl: pr.html_url });
+  } catch (error) {
+    console.error('Error creating PR:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Existing Endpoints: Tasks and Instances 
 app.get('/tasks', async (req, res) => {
   try {
     const instanceid = req.query.instanceid;
     let result;
-
     if (instanceid) {
       result = await pool.query('SELECT * FROM tasks WHERE instanceid = $1', [instanceid]);
     } else {
       result = await pool.query('SELECT * FROM tasks');
     }
-
     res.json(result.rows);
   } catch (error) {
     console.error('Error retrieving tasks:', error);
@@ -134,6 +223,7 @@ app.get('/instances', async (req, res) => {
   }
 });
 
+// Start the server
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
