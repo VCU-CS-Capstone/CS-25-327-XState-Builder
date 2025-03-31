@@ -7,18 +7,8 @@
     <div class="container mt-5 pt-5">
       <h2>Create or Review an Instance</h2>
       <div class="d-flex justify-content-center my-4">
-        <button class="btn btn-primary mx-2" @click="selectOption('new')">Create New Instance</button>
+        <button class="btn btn-primary mx-2" @click="createNewInstance">Create New Instance</button>
         <button class="btn btn-secondary mx-2" @click="selectOption('review')">Review Open Instance</button>
-      </div>
-
-      <div v-if="selectedOption === 'new'" class="form-group">
-        <label for="definitionSelect">Select a Definition:</label>
-        <select id="definitionSelect" v-model="selectedDefinition" class="form-control">
-          <option disabled value="">Please select a definition</option>
-          <option v-for="definition in definitions" :key="definition" :value="definition">
-            {{ definition }}
-          </option>
-        </select>
       </div>
 
       <div v-if="selectedOption === 'review'" class="form-group mt-3">
@@ -31,7 +21,7 @@
         </select>
       </div>
 
-      <div class="d-flex justify-content-center mt-4">
+      <div v-if="selectedOption === 'review'" class="d-flex justify-content-center mt-4">
         <button class="btn btn-success" @click="handleSubmit">Submit</button>
       </div>
     </div>
@@ -43,13 +33,15 @@ export default {
   data() {
     return {
       selectedOption: '',
-      selectedDefinition: '',
       selectedInstance: '',
-      definitions: ['Definition 1', 'Definition 2', 'Definition 3'],
-      instances: [] // List of instances fetched from the database
+      instances: [] 
     };
   },
   methods: {
+    // Directly route to IntakeForm when "Create New Instance" is clicked
+    createNewInstance() {
+      this.$router.push({ name: 'intakeForm' });
+    },
     selectOption(option) {
       this.selectedOption = option;
     },
@@ -63,12 +55,10 @@ export default {
       }
     },
     handleSubmit() {
-      if (this.selectedOption === 'new' && this.selectedDefinition) {
-        this.$router.push({ name: 'workflow', params: { instanceid: this.selectedDefinition } });
-      } else if (this.selectedOption === 'review' && this.selectedInstance) {
+      if (this.selectedOption === 'review' && this.selectedInstance) {
         this.$router.push({ name: 'workflow', params: { instanceid: this.selectedInstance } });
       } else {
-        alert('Please select an option and an appropriate value.');
+        alert('Please select an instance ID.');
       }
     }
   },
