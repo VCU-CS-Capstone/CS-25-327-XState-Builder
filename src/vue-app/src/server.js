@@ -106,34 +106,102 @@ app.get('/api/generate-xstate/:intakeId', async (req, res) => {
   }
 });
 
-// Route: Create GitHub PR with the generated XState JSON (POST /api/create-pr)
+// // Route: Create GitHub PR with the generated XState JSON (POST /api/create-pr)
+// app.post('/api/create-pr', async (req, res) => {
+//   try {
+//     const { intakeId } = req.body;
+//     if (!intakeId) {
+//       return res.status(400).json({ error: 'intakeId is required' });
+//     }
+
+//     // Generate the XState JSON as in the GET route above
+//     const intakeResult = await pool.query('SELECT * FROM workflow_intake WHERE id = $1', [intakeId]);
+//     if (intakeResult.rowCount === 0) {
+//       return res.status(404).json({ error: 'Intake not found' });
+//     }
+//     const statesResult = await pool.query('SELECT * FROM workflow_states WHERE intake_id = $1', [intakeId]);
+//     const machineDefinition = {
+//       id: 'workflow',
+//       initial: statesResult.rows.length ? statesResult.rows[0].state_name : 'start',
+//       states: {}
+//     };
+//     statesResult.rows.forEach((row) => {
+//       machineDefinition.states[row.state_name] = {
+//         on: {}
+//       };
+//       const events = JSON.parse(row.events || '[]');
+//       events.forEach((evt) => {
+//         machineDefinition.states[row.state_name].on[evt] = row.target_state;
+//       });
+//     });
+
+//     // Convert the JSON to a formatted string and then to base64
+//     const xstateJsonString = JSON.stringify(machineDefinition, null, 2);
+//     const base64Content = Buffer.from(xstateJsonString).toString('base64');
+
+//     // GitHub configuration (from environment variables)
+//     const owner = process.env.GITHUB_OWNER;
+//     const repo = process.env.GITHUB_REPO;
+//     const baseBranch = process.env.GITHUB_BASE_BRANCH || 'main';
+//     const newBranchName = `intake-xstate-${intakeId}`;
+
+//     // Get the SHA of the base branch
+//     const { data: baseBranchData } = await octokit.git.getRef({
+//       owner,
+//       repo,
+//       ref: `heads/${baseBranch}`
+//     });
+//     const baseSha = baseBranchData.object.sha;
+
+//     // Create a new branch from the base branch
+//     try {
+//       await octokit.git.createRef({
+//         owner,
+//         repo,
+//         ref: `refs/heads/${newBranchName}`,
+//         sha: baseSha,
+//       });
+//     } catch (err) {
+//       // If branch creation fails (e.g., branch already exists), log and return an error.
+//       console.error('Error creating branch:', err);
+//       return res.status(500).json({ error: 'Failed to create branch for PR' });
+//     }
+
+//     //Create or update the JSON file in the new branch
+//     const filePath = `workflows/xstate-${intakeId}.json`;
+//     const commitMessage = `Add XState JSON for intake ${intakeId}`;
+//     await octokit.repos.createOrUpdateFileContents({
+//       owner,
+//       repo,
+//       path: filePath,
+//       message: commitMessage,
+//       content: base64Content,
+//       branch: newBranchName,
+//     });
+
+//     // Create a Pull Request from the new branch to the base branch
+//     const { data: pr } = await octokit.pulls.create({
+//       owner,
+//       repo,
+//       title: `Add XState JSON for intake ${intakeId}`,
+//       head: newBranchName,
+//       base: baseBranch,
+//       body: `This PR adds the generated XState JSON for intake ${intakeId}.`,
+//     });
+
+//     res.status(201).json({ message: 'PR created successfully', prUrl: pr.html_url });
+//   } catch (error) {
+//     console.error('Error creating PR:', error);
+//     res.status(500).json({ error: 'Internal Server Error' });
+//   }
+// });
+
 app.post('/api/create-pr', async (req, res) => {
   try {
-    const { intakeId } = req.body;
-    if (!intakeId) {
-      return res.status(400).json({ error: 'intakeId is required' });
+    const { machineDefinition } = req.body;
+    if (!machineDefinition || typeof machineDefinition !== 'object') {
+      return res.status(400).json({ error: 'Valid machineDefinition JSON is required' });
     }
-
-    // Generate the XState JSON as in the GET route above
-    const intakeResult = await pool.query('SELECT * FROM workflow_intake WHERE id = $1', [intakeId]);
-    if (intakeResult.rowCount === 0) {
-      return res.status(404).json({ error: 'Intake not found' });
-    }
-    const statesResult = await pool.query('SELECT * FROM workflow_states WHERE intake_id = $1', [intakeId]);
-    const machineDefinition = {
-      id: 'workflow',
-      initial: statesResult.rows.length ? statesResult.rows[0].state_name : 'start',
-      states: {}
-    };
-    statesResult.rows.forEach((row) => {
-      machineDefinition.states[row.state_name] = {
-        on: {}
-      };
-      const events = JSON.parse(row.events || '[]');
-      events.forEach((evt) => {
-        machineDefinition.states[row.state_name].on[evt] = row.target_state;
-      });
-    });
 
     // Convert the JSON to a formatted string and then to base64
     const xstateJsonString = JSON.stringify(machineDefinition, null, 2);
@@ -143,7 +211,7 @@ app.post('/api/create-pr', async (req, res) => {
     const owner = process.env.GITHUB_OWNER;
     const repo = process.env.GITHUB_REPO;
     const baseBranch = process.env.GITHUB_BASE_BRANCH || 'main';
-    const newBranchName = `intake-xstate-${intakeId}`;
+    const newBranchName = `xstate-update-${Date.now()}`; // Unique branch name
 
     // Get the SHA of the base branch
     const { data: baseBranchData } = await octokit.git.getRef({
@@ -162,14 +230,13 @@ app.post('/api/create-pr', async (req, res) => {
         sha: baseSha,
       });
     } catch (err) {
-      // If branch creation fails (e.g., branch already exists), log and return an error.
       console.error('Error creating branch:', err);
       return res.status(500).json({ error: 'Failed to create branch for PR' });
     }
 
-    //Create or update the JSON file in the new branch
-    const filePath = `workflows/xstate-${intakeId}.json`;
-    const commitMessage = `Add XState JSON for intake ${intakeId}`;
+    // Create or update the JSON file in the new branch
+    const filePath = `workflows/xstate-${Date.now()}.json`;
+    const commitMessage = 'Add XState JSON from API request';
     await octokit.repos.createOrUpdateFileContents({
       owner,
       repo,
@@ -183,10 +250,10 @@ app.post('/api/create-pr', async (req, res) => {
     const { data: pr } = await octokit.pulls.create({
       owner,
       repo,
-      title: `Add XState JSON for intake ${intakeId}`,
+      title: 'Add XState JSON from API request',
       head: newBranchName,
       base: baseBranch,
-      body: `This PR adds the generated XState JSON for intake ${intakeId}.`,
+      body: 'This PR contains XState JSON submitted via API.',
     });
 
     res.status(201).json({ message: 'PR created successfully', prUrl: pr.html_url });
@@ -215,7 +282,7 @@ app.get('/tasks', async (req, res) => {
 
 app.get('/instances', async (req, res) => {
   try {
-    const result = await pool.query('SELECT instanceid, instancename FROM instances');
+    const result = await pool.query('SELECT instanceid, name FROM instances');
     res.json(result.rows);
   } catch (error) {
     console.error('Error retrieving instances:', error);
