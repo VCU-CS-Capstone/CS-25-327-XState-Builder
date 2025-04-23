@@ -196,16 +196,23 @@ app.get('/api/generate-xstate/:intakeId', async (req, res) => {
 //   }
 // });
 
+app.use(express.text());
 app.post('/api/create-pr', async (req, res) => {
   try {
-    const { machineDefinition } = req.body;
-    if (!machineDefinition || typeof machineDefinition !== 'object') {
-      return res.status(400).json({ error: 'Valid machineDefinition JSON is required' });
-    }
 
-    // Convert the JSON to a formatted string and then to base64
-    const xstateJsonString = JSON.stringify(machineDefinition, null, 2);
-    const base64Content = Buffer.from(xstateJsonString).toString('base64');
+    console.log('Received Payload:', req.body);
+
+    const machineCode = req.body;
+
+    //const { machineCode } = req.body; 
+    // if (!machineCode || typeof machineCode !== 'string' || machineCode.trim() === '') {
+    //   return res.status(400).json({ error: 'Valid XState machine code is required' });
+    // }    
+
+    const base64Content = Buffer.from(String(machineCode)).toString('base64');
+    //const base64Content = Buffer.from(machineCode).toString('base64');
+    console.log('Base64 Encoded Machine Code:', base64Content);
+
 
     // GitHub configuration (from environment variables)
     const owner = process.env.GITHUB_OWNER;
@@ -217,7 +224,7 @@ app.post('/api/create-pr', async (req, res) => {
     const { data: baseBranchData } = await octokit.git.getRef({
       owner,
       repo,
-      ref: `heads/${baseBranch}`
+      ref: `heads/${baseBranch}`,
     });
     const baseSha = baseBranchData.object.sha;
 
@@ -234,15 +241,15 @@ app.post('/api/create-pr', async (req, res) => {
       return res.status(500).json({ error: 'Failed to create branch for PR' });
     }
 
-    // Create or update the JSON file in the new branch
-    const filePath = `workflows/xstate-${Date.now()}.json`;
-    const commitMessage = 'Add XState JSON from API request';
+    // Create or update the `.js` file in the new branch
+    const filePath = `workflows/taskMachine-${Date.now()}.js`; // Use `.js` extension
+    const commitMessage = 'Add XState machine code';
     await octokit.repos.createOrUpdateFileContents({
       owner,
       repo,
       path: filePath,
       message: commitMessage,
-      content: base64Content,
+      content: Buffer.from(machineCode).toString('base64'), // Encode JavaScript code in base64
       branch: newBranchName,
     });
 
@@ -250,10 +257,10 @@ app.post('/api/create-pr', async (req, res) => {
     const { data: pr } = await octokit.pulls.create({
       owner,
       repo,
-      title: 'Add XState JSON from API request',
+      title: 'Add XState machine code',
       head: newBranchName,
       base: baseBranch,
-      body: 'This PR contains XState JSON submitted via API.',
+      body: 'This PR contains the submitted XState machine code.',
     });
 
     res.status(201).json({ message: 'PR created successfully', prUrl: pr.html_url });
@@ -263,7 +270,6 @@ app.post('/api/create-pr', async (req, res) => {
   }
 });
 
-// Existing Endpoints: Tasks and Instances 
 app.get('/tasks', async (req, res) => {
   try {
     const instanceid = req.query.instanceid;

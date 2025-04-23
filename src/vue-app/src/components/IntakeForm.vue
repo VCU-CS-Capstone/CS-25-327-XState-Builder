@@ -217,54 +217,131 @@ export default {
     removeEvent(stateIndex, eventIndex) {
       this.formData.states[stateIndex].events.splice(eventIndex, 1);
     },
-    async handleSubmit() {
-    // Create the JSON structure
-    const jsonData = {
-      instanceDetails: {
-        instanceType: this.formData.instanceType,
-        instanceSubtype: this.formData.instanceSubtype,
-      },
-      workflowStates: this.formData.states.map((state) => ({
-        name: state.name,
-        description: state.description,
-        events: state.events.map((event) => ({
-          eventType: event.eventType,
-          action: event.action,
-          targetState: event.targetState,
-        })),
-      })),
-    };
+    // async handleSubmit() {
+    //   // Create the JSON structure
+    //   const jsonData = {
+    //     instanceDetails: {
+    //       instanceType: this.formData.instanceType,
+    //       instanceSubtype: this.formData.instanceSubtype,
+    //     },
+    //     workflowStates: this.formData.states.map((state) => ({
+    //       name: state.name,
+    //       description: state.description,
+    //       events: state.events.map((event) => ({
+    //         eventType: event.eventType,
+    //         action: event.action,
+    //         targetState: event.targetState,
+    //       })),
+    //     })),
+    //   };
 
-    try {
-      // post request to the create-pr endpoint
-      const response = await fetch('http://localhost:4000/api/create-pr', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ machineDefinition: jsonData }),
+    //   try {
+    //     // post request to the create-pr endpoint
+    //     const response = await fetch('http://localhost:4000/api/create-pr', {
+    //       method: 'POST',
+    //       headers: {
+    //         'Content-Type': 'application/json',
+    //       },
+    //       body: JSON.stringify({ machineDefinition: jsonData }),
+    //     });
+
+    //     if (response.ok) {
+    //       const result = await response.json();
+    //       console.log('PR created successfully:', result.prUrl); // Log the Pull Request URL
+    //       this.formSubmitted = true; // Update form state
+    //     } else {
+    //       const errorData = await response.json();
+    //       console.error('Error creating PR:', errorData.error); // Log the error
+    //     }
+    //   } catch (error) {
+    //     console.error('Network or server error:', error); // Log network errors
+    //   }
+
+    //   this.formSubmitted = true;
+    //   const instanceId = 1; // set instance ID from server response
+
+    //     // Redirect after 3 seconds (3000ms)
+    //   setTimeout(() => {
+    //     this.$router.push({ name: 'workflow', params: { instanceid: instanceId } });
+    //   }, 3000);
+    // },
+    handleSubmit() {
+      // Create XState machine definition from form data
+      const xstateDefinition = {
+        id: "taskProcess",
+        initial: this.formData.states.length ? this.formData.states[0].name : "start",
+        states: {},
+      };
+
+      // Add states with description and events
+      this.formData.states.forEach((state) => {
+        xstateDefinition.states[state.name] = {
+          description: state.description,
+          on: {},
+        };
+
+        state.events.forEach((event) => {
+          xstateDefinition.states[state.name].on[event.eventType] = {
+            target: event.targetState,
+            actions: event.action, // Action name from the form
+          };
+        });
+
+        // If it's the final state, add `type: 'final'`
+        if (state.events.length === 0) {
+          xstateDefinition.states[state.name].type = "final";
+        }
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log('PR created successfully:', result.prUrl); // Log the Pull Request URL
-        this.formSubmitted = true; // Update form state
-      } else {
-        const errorData = await response.json();
-        console.error('Error creating PR:', errorData.error); // Log the error
+      // Add actions (optional, if needed)
+      const actions = {
+        log: () => console.log("Logging event"),
+        closeTask: () => console.log("Closing task"),
+        closeInstance: () => console.log("Closing instance"),
+      };
+
+      // Format as a JavaScript module
+      const formattedXState = `
+import { createMachine } from 'xstate';
+
+const taskMachine = createMachine(
+  ${JSON.stringify(xstateDefinition, null, 2)},
+  {
+    actions: ${JSON.stringify(actions, null, 2).replace(/"([^"]+)":/g, '$1:')},
+  }
+);
+
+export default taskMachine;
+    `;
+
+      console.log("Formatted XState:", formattedXState);
+
+      // Pass the formatted XState directly to the server
+      this.postToCreatePR(formattedXState);
+    },
+
+    async postToCreatePR(machineCode) {
+      try {
+        const response = await fetch('http://localhost:4000/api/create-pr', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'text/plain', // Updated to reflect raw text data
+          },
+          body: machineCode, // Pass raw JavaScript code directly
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('PR created successfully:', result.prUrl);
+          this.formSubmitted = true;
+        } else {
+          const errorData = await response.json();
+          console.error('Error creating PR:', errorData.error);
+        }
+      } catch (error) {
+        console.error('Network or server error:', error);
       }
-    } catch (error) {
-      console.error('Network or server error:', error); // Log network errors
-    }
-
-    this.formSubmitted = true;
-      const instanceId = 1; // set instance ID from server response
-
-      // Redirect after 3 seconds (3000ms)
-      setTimeout(() => {
-        this.$router.push({ name: 'workflow', params: { instanceid: instanceId } });
-      }, 3000);
-  },
+    },
   },
 };
 </script>
