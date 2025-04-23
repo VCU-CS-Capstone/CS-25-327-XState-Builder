@@ -217,18 +217,54 @@ export default {
     removeEvent(stateIndex, eventIndex) {
       this.formData.states[stateIndex].events.splice(eventIndex, 1);
     },
-    handleSubmit() {
-      console.log("Form Submitted", this.formData);
-      // Set the flag to show the pop-up message
-      this.formSubmitted = true;
-      // Simulate receiving an instance ID from your backend
-      const instanceId = 1; // Replace with the actual instance ID from your server response
+    async handleSubmit() {
+    // Create the JSON structure
+    const jsonData = {
+      instanceDetails: {
+        instanceType: this.formData.instanceType,
+        instanceSubtype: this.formData.instanceSubtype,
+      },
+      workflowStates: this.formData.states.map((state) => ({
+        name: state.name,
+        description: state.description,
+        events: state.events.map((event) => ({
+          eventType: event.eventType,
+          action: event.action,
+          targetState: event.targetState,
+        })),
+      })),
+    };
+
+    try {
+      // post request to the create-pr endpoint
+      const response = await fetch('http://localhost:4000/api/create-pr', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ machineDefinition: jsonData }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('PR created successfully:', result.prUrl); // Log the Pull Request URL
+        this.formSubmitted = true; // Update form state
+      } else {
+        const errorData = await response.json();
+        console.error('Error creating PR:', errorData.error); // Log the error
+      }
+    } catch (error) {
+      console.error('Network or server error:', error); // Log network errors
+    }
+
+    this.formSubmitted = true;
+      const instanceId = 1; // set instance ID from server response
 
       // Redirect after 3 seconds (3000ms)
       setTimeout(() => {
         this.$router.push({ name: 'workflow', params: { instanceid: instanceId } });
       }, 3000);
-    },
+  },
   },
 };
 </script>
