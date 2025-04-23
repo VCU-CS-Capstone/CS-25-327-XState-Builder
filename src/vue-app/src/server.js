@@ -211,8 +211,7 @@ app.post('/api/create-pr', async (req, res) => {
 
     const base64Content = Buffer.from(String(machineCode)).toString('base64');
     //const base64Content = Buffer.from(machineCode).toString('base64');
-    console.log('Base64 Encoded Machine Code:', base64Content);
-
+    //console.log('Base64 Encoded Machine Code:', base64Content);
 
     // GitHub configuration (from environment variables)
     const owner = process.env.GITHUB_OWNER;

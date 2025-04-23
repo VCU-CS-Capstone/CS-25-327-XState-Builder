@@ -40,7 +40,7 @@ export default {
   props: ['instanceid'],
   data() {
     return {
-      instanceInfo: 'Instance information goes here...',
+      instanceInfo: '',
       tasks: [], // Initialized empty list for tasks
       selectedTask: null // Initialize selected task
     };
@@ -70,7 +70,7 @@ export default {
     },
     createNewTask() {
       // Logic for creating a new task
-      alert('New Task Created');
+      alert('To be implemented');
     },
     closeInstance() {
       this.$router.push({ name: 'landing' });

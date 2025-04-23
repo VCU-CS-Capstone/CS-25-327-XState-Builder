@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="banner d-flex justify-content-between align-items-center p-3">
-      <h1 class="navy-blue">Landing Page</h1>
+      <h1 class="navy-blue">XState Builder</h1>
       <img src="../assets/Capital_One_logo.png" alt="Capital One Logo" class="logo">
     </div>
     <div class="container mt-5 pt-5">

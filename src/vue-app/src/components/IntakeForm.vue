@@ -341,6 +341,13 @@ export default taskMachine;
       } catch (error) {
         console.error('Network or server error:', error);
       }
+
+      this.formSubmitted = true;
+      const instanceId = 1;
+        // Redirect after 3 seconds (3000ms)
+      setTimeout(() => {
+        this.$router.push({ name: 'workflow', params: { instanceid: instanceId } });
+      }, 3000);
     },
   },
 };
